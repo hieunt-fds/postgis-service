@@ -27,8 +27,6 @@ function genValues(geodata: string, otherFields) {
 async function addRecord(table, geodata: string, otherFields) {
   const { values, listFields } = genValues(geodata, otherFields)
   const tableName = table;
-  let designObj = genTableDesign(otherFields)
-  await sql.unsafe(`CREATE TABLE IF NOT EXISTS ${tableName} (${designObj.join(', ')})`).then().catch()
   return await sql.unsafe(`
     insert into ${tableName} (${listFields.join(',')})
     values (${values})
@@ -39,8 +37,16 @@ export async function addRecordGeoJSON(tableName: string, data: any) {
   if (!(data?.length > 0)) return {
     message: 'Empty geojson data! Pls check'
   }
-  await sql.unsafe(`DROP TABLE IF EXISTS ${tableName}`);
+  let runOnce = true;
+  await sql.unsafe(`DROP TABLE IF EXISTS ${tableName}`).then().catch();
   for (let record of data || []) {
+    if (runOnce) {
+      let designObj = genTableDesign(record?.properties)
+      await sql.unsafe(`CREATE TABLE IF NOT EXISTS ${tableName} (${designObj.join(', ')})`).then().catch()
+      runOnce = false;
+    }
     await addRecord(tableName, record?.geometry, record?.properties);
   }
+  console.log('done', new Date().toLocaleString('vi'));
+
 }

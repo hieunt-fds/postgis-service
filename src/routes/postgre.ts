@@ -23,4 +23,11 @@ router.post('/importShapefile', upload.fields([{
   const kq = await addRecordGeoJSON(body?.tableNameImport, fileData);
   res.status(200).send(kq)
 })
+router.post('/importGeoJSON', async function (req, res) {
+  const body: any = req.body
+  const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+  // const fileData = await readSHPFile(files.shp?.[0]?.buffer, files.dbf?.[0]?.buffer)
+  const kq = await addRecordGeoJSON(body?.tableNameImport, body?.geoJsonData);
+  res.status(200).send(kq)
+})
 export default router
