@@ -1,4 +1,3 @@
-import 'dotenv/config'
 import { ConnectOptions, MongoClient } from 'mongodb';
 const _client = new MongoClient(process.env.MONGODB_URI || '', {
   useUnifiedTopology: true,
