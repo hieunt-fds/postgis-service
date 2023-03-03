@@ -1,10 +1,8 @@
 FROM node:alpine3.16
 RUN mkdir /app
 WORKDIR /app
-# COPY node_modules/ ./
-COPY package.json ./
-COPY tsconfig.json ./
-COPY ./src ./src
+# COPY node_modules/ 
+COPY package.json tsconfig.json src ./
 RUN npm install
 
 # dev with nodemon

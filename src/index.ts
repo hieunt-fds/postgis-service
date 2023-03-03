@@ -26,7 +26,10 @@ app.use((err: any, _req: any, res: any, _next: any) => {
   });
 });
 // app.use('/import', importRouter)
+
 app.use('/postgre', postgreRouter)
 app.listen(9000, async () => {
   console.log("Server is up! http://0.0.0.0:9000");
 })
+
+
