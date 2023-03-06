@@ -7,7 +7,7 @@ interface api {
   tableName?: string
   layerTitle?: string
 }
-async function deleteLayer({ host, workspaceName, wmsstoreName, layerName }: api) {
+export async function deleteLayer({ host, workspaceName, wmsstoreName, layerName }: api) {
   await axios.delete(`${host}/layers/${layerName?.toLocaleLowerCase()}/`, {
     headers: {
       'Authorization': `Basic ${process.env.GEOSERVER_BASIC_AUTH}`
