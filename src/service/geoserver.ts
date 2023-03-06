@@ -8,36 +8,40 @@ interface api {
   layerTitle?: string
 }
 async function deleteLayer({ host, workspaceName, wmsstoreName, layerName }: api) {
-  await axios.delete(`${host}/layers/${layerName}/`, {
+  await axios.delete(`${host}/layers/${layerName?.toLocaleLowerCase()}/`, {
     headers: {
       'Authorization': `Basic ${process.env.GEOSERVER_BASIC_AUTH}`
     },
     timeout: 10000
   }).then(res => {
     console.log('delete Layer global', layerName);
-  }).catch()
+  }).catch(err => {
+    // console.error(err)
+  })
   await new Promise(r => setTimeout(r, 1000));
-  await axios.delete(`${host}/workspaces/${workspaceName}/datastores/${wmsstoreName}/featuretypes/${layerName}/`, {
+  await axios.delete(`${host}/workspaces/${workspaceName}/datastores/${wmsstoreName}/featuretypes/${layerName?.toLocaleLowerCase()}/`, {
     headers: {
       'Authorization': `Basic ${process.env.GEOSERVER_BASIC_AUTH}`
     },
     timeout: 10000
   }).then(res => {
     console.log('delete Layer in store', wmsstoreName, 'layer', layerName);
-  }).catch()
+  }).catch(err => {
+    // console.error(err)
+  })
 }
 
 async function publishLayer({ host, workspaceName, wmsstoreName, layerName, tableName, layerTitle }: api) {
   let endpoint = `${host}/workspaces/${workspaceName}/datastores/${wmsstoreName}/featuretypes/`
   let postBody = {
     "featureType": {
-      "name": layerName,
-      "nativeName": tableName,
-      "title": layerTitle || layerName,
+      "name": layerName?.toLocaleLowerCase(),
+      "nativeName": tableName?.toLocaleLowerCase(),
+      "title": layerTitle?.toLocaleLowerCase() || layerName?.toLocaleLowerCase(),
       "keywords": {
         "string": [
           "features",
-          layerName
+          layerName?.toLocaleLowerCase()
         ]
       },
       "nativeCRS": "GEOGCS[\"WGS 84\", \n  DATUM[\"World Geodetic System 1984\", \n    SPHEROID[\"WGS 84\", 6378137.0, 298.257223563, AUTHORITY[\"EPSG\",\"7030\"]], \n    AUTHORITY[\"EPSG\",\"6326\"]], \n  PRIMEM[\"Greenwich\", 0.0, AUTHORITY[\"EPSG\",\"8901\"]], \n  UNIT[\"degree\", 0.017453292519943295], \n  AXIS[\"Geodetic longitude\", EAST], \n  AXIS[\"Geodetic latitude\", NORTH], \n  AUTHORITY[\"EPSG\",\"4326\"]]",
@@ -56,11 +60,12 @@ async function publishLayer({ host, workspaceName, wmsstoreName, layerName, tabl
     timeout: 10000,
     data: postBody
   };
+  // console.log(JSON.stringify(config));
 
   await axios(config).then(function (response) {
-    console.log('Published', layerName);
+    console.log('Published', layerName, layerTitle);
 
-  }).catch()
+  }).catch(err => { console.error(err) })
 }
 
 export async function deleteAndPublishLayer({ host, workspaceName, wmsstoreName, layerName, tableName, layerTitle }: api) {
