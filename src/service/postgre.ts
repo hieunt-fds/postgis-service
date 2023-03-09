@@ -69,6 +69,7 @@ export async function addRecordGeoJSONFromMongoQuery({ tableNameImport, layerTit
   let kq = 0;
   await sql.unsafe(`DROP TABLE IF EXISTS ${tableNameImport}`).then().catch();
   let runOnce = true;
+  console.log('addRecordGeoJSONFromMongoQuery', db, collection, filter);
 
   let cursor = _client.db(db).collection(collection).find(filter)
   while (await cursor.hasNext()) {

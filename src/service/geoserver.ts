@@ -19,19 +19,29 @@ export async function deleteLayer({ host, workspaceName, wmsstoreName, layerName
     // console.error(err)
   })
   await new Promise(r => setTimeout(r, 1000));
-  await axios.delete(`${host}/workspaces/${workspaceName}/datastores/${wmsstoreName}/featuretypes/${layerName?.toLocaleLowerCase()}/`, {
+  return await axios.delete(`${host}/workspaces/${workspaceName}/datastores/${wmsstoreName}/featuretypes/${layerName?.toLocaleLowerCase()}/`, {
     headers: {
       'Authorization': `Basic ${process.env.GEOSERVER_BASIC_AUTH}`
     },
     timeout: 10000
   }).then(res => {
     console.log('delete Layer in store', wmsstoreName, 'layer', layerName);
+    return {
+      status: res.status,
+      message: 'Success'
+    }
   }).catch(err => {
-    // console.error(err)
+    if (err?.response?.data) {
+      console.error(err?.response?.data)
+      return {
+        status: err?.response?.status,
+        message: err?.response?.data,
+      };
+    }
   })
 }
 
-async function publishLayer({ host, workspaceName, wmsstoreName, layerName, tableName, layerTitle }: api) {
+export async function publishLayer({ host, workspaceName, wmsstoreName, layerName, tableName, layerTitle }: api) {
   let endpoint = `${host}/workspaces/${workspaceName}/datastores/${wmsstoreName}/featuretypes/`
   let postBody = {
     "featureType": {
@@ -62,10 +72,21 @@ async function publishLayer({ host, workspaceName, wmsstoreName, layerName, tabl
   };
   // console.log(JSON.stringify(config));
 
-  await axios(config).then(function (response) {
+  return await axios(config).then(function (response) {
     console.log('Published', layerName, layerTitle);
-
-  }).catch(err => { console.error(err) })
+    return {
+      status: response.status,
+      message: 'Success'
+    }
+  }).catch(err => {
+    if (err?.response?.data) {
+      console.error(err?.response?.data)
+      return {
+        status: err?.response?.status,
+        message: err?.response?.data,
+      };
+    }
+  })
 }
 
 export async function deleteAndPublishLayer({ host, workspaceName, wmsstoreName, layerName, tableName, layerTitle }: api) {
