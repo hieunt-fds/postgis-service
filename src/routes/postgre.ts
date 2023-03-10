@@ -1,6 +1,8 @@
 import express from 'express';
+import { createReadStream, unlink } from 'fs-extra';
 import multer from 'multer';
 import { verify } from 'service/auth';
+import { getSHPZip } from 'service/geojson2shp';
 import { deleteAndPublishLayer, deleteLayer, publishLayer } from 'service/geoserver';
 import { addRecordGeoJSON, addRecordGeoJSONFromMongoQuery } from 'service/postgre';
 import { readSHPFile } from 'service/shapefile';
@@ -173,6 +175,36 @@ router.post('/LayerPublish', async function (req, res) {
     layerTitle: body?.layerTitle
   })
   res.status(kq?.status || 500).send(kq)
+})
+router.post('/ShapefileExportByQuery', async function (req, res) {
+  const body: any = req.body
+
+  const authStatus = await verify(body?.token);
+  if (authStatus?.status == 403) {
+    res.send(authStatus)
+    return;
+  }
+
+  if (!body?.db || !body?.collection) {
+    res.status(400).send("db, collection is required")
+    return
+  }
+  console.log(body);
+  const { path, name } = await getSHPZip({
+    db: body?.db,
+    collection: body?.collection,
+    filter: body?.filter,
+  })
+  const fileType = 'application/zip';
+  res.setHeader('Content-Disposition', `attachment; filename="${name}.zip"`)
+  res.setHeader('Content-Type', fileType)
+  // await res.status(200).sendFile(path, {
+  //   root: '.'
+  // })
+  var readStream = createReadStream(path);
+  await readStream.pipe(res).on("finish", () => {
+    unlink(path)
+  })
 })
 
 export default router

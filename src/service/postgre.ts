@@ -29,7 +29,7 @@ function genValues(geodata: string, otherFields) {
   return { values: data, listFields }
 }
 
-async function addRecord(table, geodata: string, otherFields) {
+async function addRecord(table, geodata, otherFields) {
   const { values, listFields } = genValues(geodata, otherFields)
   const tableName = table;
   return await sql.unsafe(`
@@ -74,6 +74,8 @@ export async function addRecordGeoJSONFromMongoQuery({ tableNameImport, layerTit
   let cursor = _client.db(db).collection(collection).find(filter)
   while (await cursor.hasNext()) {
     let doc = await cursor.next();
+    console.log(doc?._id);
+
     let mappingData = () => {
       // doc?.the_geom?.properties
       let data = {};
@@ -92,16 +94,22 @@ export async function addRecordGeoJSONFromMongoQuery({ tableNameImport, layerTit
       await sql.unsafe(`CREATE TABLE IF NOT EXISTS ${tableNameImport} (${designObj.join(', ')})`).then().catch()
       runOnce = false;
     }
-    if (doc?.DoiTuongDiaLy?.[0]?.DuLieuHinhHoc) {
-      await addRecord(tableNameImport, doc?.DoiTuongDiaLy?.[0]?.DuLieuHinhHoc?.geometry, properties);
-      kq++;
+    try {
+      if (doc?.DoiTuongDiaLy?.[0]?.DuLieuHinhHoc?.geometry) {
+        await addRecord(tableNameImport, doc?.DoiTuongDiaLy?.[0]?.DuLieuHinhHoc?.geometry, properties);
+        kq++;
+      }
+      else if (tinh_thanh && TINHTHANHGEOMETRY[objectView(tinh_thanh?.field, doc)]?.geometry) {
+        await addRecord(tableNameImport, TINHTHANHGEOMETRY[objectView(tinh_thanh?.field, doc)]?.geometry, properties);
+      }
+      else {
+        console.log('doc?.DoiTuongDiaLy?.[0]?.DuLieuHinhHoc?.geometry not found');
+      }
     }
-    else if (tinh_thanh) {
-      await addRecord(tableNameImport, TINHTHANHGEOMETRY[objectView(tinh_thanh?.field, doc)]?.geometry, properties);
+    catch (err) {
+      console.log(doc?._id);
     }
-    else {
-      console.log('doc.DoiTuongDiaLy.DuLieuHinhHoc[0] not found');
-    }
+    // break;
   }
   return kq
 }
