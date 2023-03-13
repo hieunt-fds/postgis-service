@@ -1,11 +1,12 @@
 import axios from "axios";
 interface api {
-  host: string,
-  workspaceName: string,
-  wmsstoreName: string,
+  host: string
+  workspaceName: string
+  wmsstoreName: string
   layerName?: string
   tableName?: string
   layerTitle?: string
+  srs?: string
 }
 export async function deleteLayer({ host, workspaceName, wmsstoreName, layerName }: api) {
   await axios.delete(`${host}/layers/${layerName?.toLocaleLowerCase()}/`, {
@@ -41,7 +42,7 @@ export async function deleteLayer({ host, workspaceName, wmsstoreName, layerName
   })
 }
 
-export async function publishLayer({ host, workspaceName, wmsstoreName, layerName, tableName, layerTitle }: api) {
+export async function publishLayer({ host, workspaceName, wmsstoreName, layerName, tableName, layerTitle, srs }: api) {
   let endpoint = `${host}/workspaces/${workspaceName}/datastores/${wmsstoreName}/featuretypes/`
   let postBody = {
     "featureType": {
@@ -54,8 +55,7 @@ export async function publishLayer({ host, workspaceName, wmsstoreName, layerNam
           layerName?.toLocaleLowerCase()
         ]
       },
-      "nativeCRS": "GEOGCS[\"WGS 84\", \n  DATUM[\"World Geodetic System 1984\", \n    SPHEROID[\"WGS 84\", 6378137.0, 298.257223563, AUTHORITY[\"EPSG\",\"7030\"]], \n    AUTHORITY[\"EPSG\",\"6326\"]], \n  PRIMEM[\"Greenwich\", 0.0, AUTHORITY[\"EPSG\",\"8901\"]], \n  UNIT[\"degree\", 0.017453292519943295], \n  AXIS[\"Geodetic longitude\", EAST], \n  AXIS[\"Geodetic latitude\", NORTH], \n  AUTHORITY[\"EPSG\",\"4326\"]]",
-      "srs": "EPSG:4326",
+      "srs": srs || "EPSG:4326",
       "projectionPolicy": "FORCE_DECLARED",
       "enabled": true
     }
@@ -89,8 +89,8 @@ export async function publishLayer({ host, workspaceName, wmsstoreName, layerNam
   })
 }
 
-export async function deleteAndPublishLayer({ host, workspaceName, wmsstoreName, layerName, tableName, layerTitle }: api) {
+export async function deleteAndPublishLayer({ host, workspaceName, wmsstoreName, layerName, tableName, layerTitle, srs }: api) {
   await deleteLayer({ host, workspaceName, wmsstoreName, layerName })
   await new Promise(r => setTimeout(r, 1000));
-  await publishLayer({ host, workspaceName, wmsstoreName, layerName, tableName, layerTitle })
+  await publishLayer({ host, workspaceName, wmsstoreName, layerName, tableName, layerTitle, srs })
 }

@@ -2,7 +2,7 @@ import 'dotenv/config'
 import bodyParser from 'body-parser';
 import https from 'https';
 import express from 'express';
-import postgreRouter from "@routes/postgre";
+import postgreRouter from "@routes/index";
 import { ensureDir } from 'fs-extra';
 // import importRouter from "@routes/importXlsx";
 

@@ -12,7 +12,5 @@ export async function unzipFile(buffer) {
       }
     }
   }
-  console.log(kq);
-
   return await kq;
 }
