@@ -100,7 +100,8 @@ router.post('/DataFromMongoQueryImport', async function (req, res) {
       },
       mapping: body?.mapping,
       tinh_thanh: body?.tinh_thanh,
-      clearCacheTinhThanh: body?.clearCacheTinhThanh
+      clearCacheTinhThanh: body?.clearCacheTinhThanh,
+      srs: body?.srs
     })
   if (numberRecordAdded) {
     await deleteAndPublishLayer({

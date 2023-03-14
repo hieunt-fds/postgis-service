@@ -59,7 +59,7 @@ export async function addRecordGeoJSON(tableName: string, data: any) {
 }
 
 
-export async function addRecordGeoJSONFromMongoQuery({ tableNameImport, layerTitle, layerName, tinh_thanh, clearCacheTinhThanh, mapping, queryMongo: {
+export async function addRecordGeoJSONFromMongoQuery({ tableNameImport, layerTitle, layerName, tinh_thanh, clearCacheTinhThanh, mapping, srs, queryMongo: {
   db, collection, filter
 } }) {
   let TINHTHANHGEOMETRY: any = {}
@@ -69,13 +69,13 @@ export async function addRecordGeoJSONFromMongoQuery({ tableNameImport, layerTit
   let kq = 0;
   await sql.unsafe(`DROP TABLE IF EXISTS ${tableNameImport}`).then().catch();
   let runOnce = true;
-  console.log('addRecordGeoJSONFromMongoQuery', db, collection, filter);
+  console.log('addRecordGeoJSONFromMongoQuery', db, collection, filter, srs);
+  const MAHEQUYCHIEUBANDO = srs?.split(':')?.[1]
 
   let cursor = _client.db(db).collection(collection).find(filter)
   while (await cursor.hasNext()) {
     let doc = await cursor.next();
-    console.log(doc?._id);
-
+    // console.log(doc?._id);
     let mappingData = () => {
       // doc?.the_geom?.properties
       let data = {};
@@ -94,22 +94,30 @@ export async function addRecordGeoJSONFromMongoQuery({ tableNameImport, layerTit
       await sql.unsafe(`CREATE TABLE IF NOT EXISTS ${tableNameImport} (${designObj.join(', ')})`).then().catch()
       runOnce = false;
     }
-    try {
-      if (doc?.DoiTuongDiaLy?.[0]?.DuLieuHinhHoc?.geometry) {
-        await addRecord(tableNameImport, doc?.DoiTuongDiaLy?.[0]?.DuLieuHinhHoc?.geometry, properties);
-        kq++;
-      }
-      else if (tinh_thanh && TINHTHANHGEOMETRY[objectView(tinh_thanh?.field, doc)]?.geometry) {
-        await addRecord(tableNameImport, TINHTHANHGEOMETRY[objectView(tinh_thanh?.field, doc)]?.geometry, properties);
-      }
-      else {
-        console.log('doc?.DoiTuongDiaLy?.[0]?.DuLieuHinhHoc?.geometry not found');
+    // console.log(doc?.DoiTuongDiaLy);
+
+    // Lọc DoiTuongDiaLy theo HeQuyChieuBanDo
+    let srsFilteredData = doc?.DoiTuongDiaLy?.filter(x => {
+      // TODO add MucZoom
+      return x.HeQuyChieuBanDo?._source.MaMuc == MAHEQUYCHIEUBANDO
+    })
+    // console.log('srsFilteredData', srsFilteredData);
+
+    if (tinh_thanh && TINHTHANHGEOMETRY[objectView(tinh_thanh?.field, doc)]?.geometry) {
+      await addRecord(tableNameImport, TINHTHANHGEOMETRY[objectView(tinh_thanh?.field, doc)]?.geometry, properties);
+    }
+    else if (srsFilteredData?.length > 0) {
+      for (const doiTuong of srsFilteredData) {
+        if (doiTuong?.DuLieuHinhHoc?.geometry) {
+          await addRecord(tableNameImport, doiTuong?.DuLieuHinhHoc?.geometry, properties);
+          kq++;
+        }
       }
     }
-    catch (err) {
-      console.log(doc?._id);
+    else {
+      console.log(String(doc?._id), 'geometry not found');
     }
-    // break;
+    break;
   }
   return kq
 }
