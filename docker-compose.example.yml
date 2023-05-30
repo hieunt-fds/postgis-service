@@ -1,0 +1,23 @@
+  postgis-service:
+    build: ./postgis-service
+    image: imagename
+    container_name: postgis-service
+    restart: always
+    volumes:
+      - ./postgis-service/:/app/
+    environment:
+      - DB=
+      - USER_POSTGRE=
+      - PASSWORD_POSTGRE=
+      - HOST_POSTGRE=
+      - PORT_POSTGRE=
+      - MONGODB_URI=
+      - MONGODBFS_URI=
+      - GEOSERVER_BASIC_AUTH=
+      - HOST_GEOSERVER=
+      - HOST_GEOSERVER=
+      - JWT_SECRET=
+    ports:
+      - "3010:9000"
+    expose:
+      - 3010
