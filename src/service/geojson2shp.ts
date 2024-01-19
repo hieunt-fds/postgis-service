@@ -1,6 +1,5 @@
 import { _client } from '@db/mongodb'
 import { convert } from 'geojson2shp'
-import Stream from 'stream'
 
 async function convertGeoJSON2SHP(name, features) {
   const options = {
@@ -20,7 +19,15 @@ export async function getSHPZip({ db, collection, filter }) {
 
   let features: any = []
   const exportLayerName = `${db}___${collection}`
-  let cursor = _client.db(db).collection(collection).find(filter)
+
+  let cursor = _client.db(db).collection(collection).find({
+    $and: [
+      filter,
+      {
+        DoiTuongDiaLy: { $exists: true }
+      }
+    ]
+  })
   while (await cursor.hasNext()) {
     let doc = await cursor.next();
     if (doc?.DoiTuongDiaLy?.[0]?.DuLieuHinhHoc?.geometry) {

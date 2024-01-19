@@ -84,4 +84,4 @@ async function uploadExpressFile(client: MongoClient, bucket: string, fileName: 
   return fileUpload;
 }
 
-export default { createOne, deleteOne, updateById, updateOne, findOne, updateMany, findOneById, createOneIfNotExist, findMany, bulkCreateOneIfNotExist, uploadExpressFile };
+export { createOne, deleteOne, updateById, updateOne, findOne, updateMany, findOneById, createOneIfNotExist, findMany, bulkCreateOneIfNotExist, uploadExpressFile };

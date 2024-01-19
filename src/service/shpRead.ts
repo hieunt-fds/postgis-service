@@ -15,9 +15,10 @@ export async function readSHPFile(shp, dbf?) {
         return source.read().then(log);
       })
     )
+    return kq
   }
   catch (err) {
     console.error(err.stack)
   }
-  return kq;
+  return null;
 }
